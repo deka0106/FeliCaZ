@@ -26,7 +26,8 @@ val kotlinVersion: String by project
 
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+    implementation(kotlin("stdlib-jdk8", kotlinVersion))
+    implementation(kotlin("reflect", kotlinVersion))
     implementation("com.android.support:appcompat-v7:28.0.0")
     implementation("com.android.support.constraint:constraint-layout:1.1.3")
     testImplementation("junit:junit:4.12")
