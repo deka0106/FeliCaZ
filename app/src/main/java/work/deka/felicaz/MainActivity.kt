@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import work.deka.nfc.NfcFReader
 import work.deka.nfc.exception.NfcException
+import work.deka.nfc.util.hex
 
 class MainActivity : AppCompatActivity() {
     private val nfcAdapter by lazy { NfcAdapter.getDefaultAdapter(this) }
@@ -54,8 +55,8 @@ class MainActivity : AppCompatActivity() {
 
         val nfcReader = NfcFReader(tag)
         try {
-            val response = nfcReader.read(10)
-            Log.d(TAG, response.joinToString(" "))
+            val response = nfcReader.read(15)
+            Log.d(TAG, hex(response))
         } catch (e: NfcException) {
             e.printStackTrace()
         }

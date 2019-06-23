@@ -3,6 +3,7 @@ package work.deka.nfc.command
 import android.nfc.tech.NfcF
 import android.util.Log
 import work.deka.nfc.exception.NfcException
+import work.deka.nfc.util.hex
 import java.io.ByteArrayOutputStream
 
 abstract class NfcFCommand<T : NfcFCommand.Response>(private val nfc: NfcF) {
@@ -20,7 +21,7 @@ abstract class NfcFCommand<T : NfcFCommand.Response>(private val nfc: NfcF) {
             out.write(command.size + 1)
             out.write(command)
             if (!nfc.isConnected) nfc.connect()
-            Log.d(TAG, out.toByteArray().joinToString(" ") { "%02x".format(it) })
+            Log.d(TAG, hex(out.toByteArray()))
             return parse(nfc.transceive(out.toByteArray()))
         } catch (e: Exception) {
             throw NfcException("Failed to execute NFC-F command.", e)

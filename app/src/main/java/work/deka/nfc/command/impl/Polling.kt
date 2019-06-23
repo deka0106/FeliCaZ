@@ -22,8 +22,11 @@ class Polling(
     }.toByteArray()
 
     class Response(data: ByteArray) : NfcFCommand.Response(data) {
+        val size get() = data[0]
+        val responseCode get() = data[1]
         val idm get() = data.sliceArray(2 until 10)
         val pmm get() = data.sliceArray(10 until 18)
+        val requestData get() = data.sliceArray(18 until 20)
     }
 
 }

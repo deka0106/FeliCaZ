@@ -28,6 +28,16 @@ class ReadWithoutEncryption(
         }
     }.toByteArray()
 
-    class Response(data: ByteArray) : NfcFCommand.Response(data)
+    class Response(data: ByteArray) : NfcFCommand.Response(data) {
+        val size get() = data[0]
+        val responseCode get() = data[1]
+        val idm get() = data.sliceArray(2 until 10)
+        val status1 get() = data[10]
+        val status2 get() = data[11]
+        val blockCount get() = data[12]
+        val blocks get() = data.sliceArray(13 until 13 + blockCount * 16)
+
+        val ok get() = status1 == 0x00.toByte() && status2 == 0x00.toByte()
+    }
 
 }
