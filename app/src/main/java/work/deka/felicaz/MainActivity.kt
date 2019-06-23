@@ -52,9 +52,9 @@ class MainActivity : AppCompatActivity() {
         val tag = intent.getParcelableExtra<Tag>(NfcAdapter.EXTRA_TAG) ?: return
         Log.d(TAG, tag.toString())
 
-        val nfcReader = NfcFReader()
+        val nfcReader = NfcFReader(tag)
         try {
-            val response = nfcReader.read(tag)
+            val response = nfcReader.read(10)
             Log.d(TAG, response.joinToString(" "))
         } catch (e: NfcException) {
             e.printStackTrace()
