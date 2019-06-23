@@ -29,15 +29,14 @@ class ReadWithoutEncryption(
     }.toByteArray()
 
     class Response(data: ByteArray) : NfcFCommand.Response(data) {
-        val size get() = data[0]
-        val responseCode get() = data[1]
-        val idm get() = data.sliceArray(2 until 10)
-        val status1 get() = data[10]
-        val status2 get() = data[11]
-        val blockCount get() = data[12]
-        val blocks get() = data.sliceArray(13 until 13 + blockCount * 16)
-
-        val ok get() = status1 == 0x00.toByte() && status2 == 0x00.toByte()
+        val size by lazy { data[0] }
+        val responseCode by lazy { data[1] }
+        val idm by lazy { data.sliceArray(2 until 10) }
+        val status1 by lazy { data[10] }
+        val status2 by lazy { data[11] }
+        val blockCount by lazy { data[12] }
+        val blocks by lazy { Array(blockCount.toInt()) { data.sliceArray(13 + it * 16 until 13 + (it + 1) * 16) } }
+        val ok by lazy { status1 == 0x00.toByte() && status2 == 0x00.toByte() }
     }
 
 }

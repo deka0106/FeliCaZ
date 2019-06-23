@@ -5,13 +5,14 @@ import android.nfc.tech.NfcF
 import work.deka.nfc.command.impl.Polling
 import work.deka.nfc.command.impl.ReadWithoutEncryption
 import work.deka.nfc.exception.NfcException
+import work.deka.nfc.model.Entry
 import work.deka.nfc.util.hex
 
 class NfcFReader(private val tag: Tag) {
 
     val nfc by lazy { NfcF.get(tag) ?: throw NfcException("Failed to get $tag.") }
 
-    fun read(size: Int): ByteArray {
+    fun read(size: Int): List<Entry> {
         try {
             nfc.connect()
 
@@ -22,7 +23,7 @@ class NfcFReader(private val tag: Tag) {
             nfc.close()
 
             if (!response.ok) throw NfcException("Failed by ${hex(response.status1)} or ${hex(response.status2)}.")
-            return response.data
+            return response.blocks.map(::Entry)
         } catch (e: Exception) {
             throw NfcException("Failed to read NFC-F.", e)
         }
