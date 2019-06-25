@@ -6,13 +6,15 @@ import work.deka.nfc.exception.NfcException
 import work.deka.nfc.util.hex
 import java.io.ByteArrayOutputStream
 
-abstract class NfcFCommand<T : NfcFCommand.Response>(private val nfc: NfcF) {
+interface NfcFCommand<T : NfcFCommand.Response> {
 
-    abstract val commandCode: Byte
-    abstract val responseCode: Byte
+    val nfc: NfcF
 
-    protected abstract fun parse(data: ByteArray): T
-    protected abstract fun command(): ByteArray
+    val commandCode: Byte
+    val responseCode: Byte
+
+    fun parse(data: ByteArray): T
+    fun command(): ByteArray
 
     fun execute(): T {
         try {
@@ -28,7 +30,9 @@ abstract class NfcFCommand<T : NfcFCommand.Response>(private val nfc: NfcF) {
         }
     }
 
-    abstract class Response(val data: ByteArray)
+    interface Response {
+        val data: ByteArray
+    }
 
     companion object {
         val TAG = NfcFCommand::class.simpleName ?: "NfcFCommand"
