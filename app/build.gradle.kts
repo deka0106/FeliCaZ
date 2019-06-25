@@ -30,6 +30,8 @@ dependencies {
     implementation(kotlin("reflect", kotlinVersion))
     implementation("com.android.support:appcompat-v7:28.0.0")
     implementation("com.android.support.constraint:constraint-layout:1.1.3")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.9")
+    implementation("com.google.oauth-client:google-oauth-client:1.30.1")
     testImplementation("junit:junit:4.12")
     androidTestImplementation("com.android.support.test:runner:1.0.2")
     androidTestImplementation("com.android.support.test.espresso:espresso-core:3.0.2")
