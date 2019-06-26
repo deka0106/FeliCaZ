@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">FeliCaZ</string>
+    <string name="consumer_key">fbe0f480845d727e15734dbbc4b4e4cdd6de9129</string>
+    <string name="consumer_secret">54fc07a6fe39e173eca2e0f645badc22db37274c</string>
+    <string name="callback_url">https://felicaz.deka.work</string>
+    <string name="failed_to_get_code">Failed to get code.</string>
+    <string name="failed_to_authorize">Failed to authorize.</string>
+    <string name="auth">Login with Zaim</string>
 </resources>

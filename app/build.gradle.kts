@@ -20,9 +20,15 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
+    packagingOptions {
+        exclude("META-INF/DEPENDENCIES")
+        exclude("META-INF/NOTICE")
+        exclude("META-INF/LICENSE")
+    }
 }
 
 val kotlinVersion: String by project
+val coroutinesVersion = "1.3.0-M1"
 
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
@@ -32,6 +38,8 @@ dependencies {
     implementation("com.android.support.constraint:constraint-layout:1.1.3")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.9")
     implementation("com.google.oauth-client:google-oauth-client:1.30.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion")
     testImplementation("junit:junit:4.12")
     androidTestImplementation("com.android.support.test:runner:1.0.2")
     androidTestImplementation("com.android.support.test.espresso:espresso-core:3.0.2")
