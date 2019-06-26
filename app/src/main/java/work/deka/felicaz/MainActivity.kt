@@ -8,16 +8,15 @@ import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.NfcF
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import com.google.api.client.auth.oauth.OAuthCredentialsResponse
 import kotlinx.coroutines.*
+import work.deka.felicaz.util.zaim
+import work.deka.felicaz.util.saveCredentials
 import work.deka.nfc.NfcFReader
 import work.deka.nfc.exception.NfcException
-import work.deka.zaim.Zaim
 import work.deka.zaim.exception.ZaimException
 import kotlin.coroutines.CoroutineContext
 
@@ -28,17 +27,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     }
     private val nfcFilter by lazy { IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED).apply { addDataType("*/*") } }
 
-    private val preferences by lazy { PreferenceManager.getDefaultSharedPreferences(applicationContext) }
-    private val zaim by lazy {
-        Zaim(
-            Zaim.Configuration(
-                getString(R.string.consumer_key),
-                getString(R.string.consumer_secret),
-                getString(R.string.callback_url)
-            ),
-            loadCredentials()
-        )
-    }
+    private val zaim by lazy { zaim(applicationContext) }
 
     private val job by lazy { Job() }
     override val coroutineContext: CoroutineContext get() = Dispatchers.Main + job
@@ -101,7 +90,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
             withContext(Dispatchers.IO) {
                 try {
                     zaim.authorize(code)
-                    saveCredentials()
+                    saveCredentials(applicationContext, zaim.credentials)
                     Log.d(TAG, zaim.getUserVerify().execute().toString())
                 } catch (e: ZaimException) {
                     Toast.makeText(applicationContext, getString(R.string.failed_to_authorize), Toast.LENGTH_LONG)
@@ -120,23 +109,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         }
     }
 
-    private fun saveCredentials() = preferences.edit()
-        .putString(TOKEN, zaim.credentials.token)
-        .putString(TOKEN_SECRET, zaim.credentials.tokenSecret)
-        .apply()
-
-    private fun loadCredentials() = OAuthCredentialsResponse().apply {
-        token = preferences.getString(TOKEN, "")
-        tokenSecret = preferences.getString(TOKEN_SECRET, "")
-    }
-
-    private fun clearCredentials() = preferences.edit().remove(TOKEN).remove(TOKEN_SECRET).apply()
-
     companion object {
         val TAG = MainActivity::class.simpleName ?: "Main"
         val NFC_TYPES = arrayOf(NfcF::class.java.name)
-        const val TOKEN = "token"
-        const val TOKEN_SECRET = "token_secret"
         const val OAUTH_VERIFIER = "oauth_verifier"
     }
 
