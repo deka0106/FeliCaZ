@@ -13,8 +13,8 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import kotlinx.coroutines.*
-import work.deka.felicaz.util.zaim
 import work.deka.felicaz.util.saveCredentials
+import work.deka.felicaz.util.zaim
 import work.deka.nfc.NfcFReader
 import work.deka.nfc.exception.NfcException
 import work.deka.zaim.exception.ZaimException
