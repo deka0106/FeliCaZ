@@ -3,13 +3,13 @@ package work.deka.zaim.home.user
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.annotation.JsonNaming
-import work.deka.zaim.Response
+import work.deka.zaim.ZaimResponse
 import java.util.*
 
 data class GetUserVerifyResponse(
     val me: Me,
     val requested: Int
-) : Response {
+) : ZaimResponse {
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
     data class Me(
         val login: String,

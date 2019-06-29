@@ -1,5 +1,5 @@
 package work.deka.zaim
 
-interface Request<T : Response> {
+interface ZaimRequest<T : ZaimResponse> {
     fun execute(): T
 }
