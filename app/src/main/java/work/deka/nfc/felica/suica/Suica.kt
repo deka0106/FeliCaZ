@@ -1,40 +1,42 @@
-package work.deka.nfc.felica
+package work.deka.nfc.felica.suica
 
 import android.util.SparseArray
 import work.deka.nfc.util.combine
+import work.deka.nfc.util.int
 import java.util.*
 
 // https://ja.osdn.net/projects/felicalib/wiki/suica
+// http://jennychan.web.fc2.com/format/suica.html
 class Suica {
 
     class Entry(val data: ByteArray) {
 
-        val terminalCode by lazy { data[0].toInt() }
+        val terminalCode by lazy { int(data[0]) }
         val terminal by lazy { TERMINAL[terminalCode] }
 
-        val processCode by lazy { data[1].toInt() }
+        val processCode by lazy { int(data[1]) }
         val process by lazy { PROCESS[processCode] }
 
-        val paymentCode by lazy { data[2].toInt() }
+        val paymentCode by lazy { int(data[2]) }
         val payment by lazy { PAYMENT[paymentCode] }
 
-        val accessCode by lazy { data[3].toInt() }
+        val accessCode by lazy { int(data[3]) }
         val access by lazy { ACCESS[accessCode] }
 
         val date: Date by lazy {
-            val (year, month, day) = combine(data.sliceArray(4 until 6)).run {
+            val (year, month, day) = combine(data.sliceArray(4 until 6)).let {
                 Triple(
-                    this and 0b1111111000000000 shr 9,
-                    this and 0b0000000111100000 shr 5,
-                    this and 0b0000000000011111
+                    it and 0b1111111000000000 shr 9,
+                    it and 0b0000000111100000 shr 5,
+                    it and 0b0000000000011111
                 )
             }
             val (hour, minute, second) = when {
-                isShopping -> combine(data.sliceArray(6 until 8)).run {
+                isShopping -> combine(data.sliceArray(6 until 8)).let {
                     Triple(
-                        this and 0b1111100000000000 shr 11,
-                        this and 0b0000011111100000 shr 5,
-                        this and 0b0000000000011111
+                        it and 0b1111100000000000 shr 11,
+                        it and 0b0000011111100000 shr 5,
+                        it and 0b0000000000011111
                     )
                 }
                 else -> Triple(0, 0, 0)
@@ -42,28 +44,24 @@ class Suica {
             Calendar.getInstance().apply { set(2000 + year, month, day, hour, minute, second) }.time
         }
 
-        val inLineCode by lazy { data[6].toInt() }
-        val inStationCode by lazy { data[7].toInt() }
-        val outLineCode by lazy { data[8].toInt() }
-        val outStationCode by lazy { data[9].toInt() }
+        val inAreaCode by lazy { int(data[15]) and 0b11000000 shr 6 }
+        val inLineCode by lazy { int(data[6]) }
+        val inStationCode by lazy { int(data[7]) }
+
+        val outAreaCode by lazy { int(data[15]) and 0b00110000 shr 4 }
+        val outLineCode by lazy { int(data[8]) }
+        val outStationCode by lazy { int(data[9]) }
 
         val balance by lazy { combine(data.sliceArray(10 until 12).reversedArray()) }
-        val serial by lazy { data.sliceArray(12 until 15) }
-        val reasion by lazy { data[15].toInt() }
-
-        val type: String by lazy {
-            when {
-                isShopping -> "物販"
-                isBus -> "バス"
-                inLineCode < 0x80 -> "JR"
-                reasion == 0x00 -> "関東公営・私鉄"
-                reasion == 0x01 -> "関西公営・私鉄"
-                else -> "その他"
-            }
-        }
+        val serial by lazy { combine(data.sliceArray(13 until 15)) }
+        val region by lazy { int(data[15]) }
 
         val isShopping by lazy { isShopping(processCode) }
         val isBus by lazy { isBus(processCode) }
+
+        val isStation by lazy { isStation(terminalCode) }
+        val isShop by lazy { isShop(terminalCode) }
+        val isBusStation by lazy { isBusStation(terminalCode) }
 
         override fun toString(): String = mapOf(
             "端末種" to terminal,
@@ -71,8 +69,7 @@ class Suica {
             "支払" to payment,
             "入出場" to access,
             "日付" to date,
-            "残高" to balance,
-            "種類" to type
+            "残高" to balance
         ).toString()
 
     }
@@ -162,6 +159,21 @@ class Suica {
 
         fun isBus(processCode: Int): Boolean = when (processCode) {
             0x0D, 0x0F, 0x1F, 0x23 -> true
+            else -> false
+        }
+
+        fun isStation(terminalCode: Int): Boolean = when (terminalCode) {
+            0xC7, 0xC8, 0x05 -> false
+            else -> true
+        }
+
+        fun isShop(terminalCode: Int): Boolean = when (terminalCode) {
+            0xC7, 0xC8 -> true
+            else -> false
+        }
+
+        fun isBusStation(terminalCode: Int): Boolean = when (terminalCode) {
+            0x05 -> true
             else -> false
         }
 

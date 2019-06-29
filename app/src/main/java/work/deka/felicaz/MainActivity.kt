@@ -17,6 +17,8 @@ import work.deka.felicaz.util.saveCredentials
 import work.deka.felicaz.util.zaim
 import work.deka.nfc.NfcFReader
 import work.deka.nfc.exception.NfcException
+import work.deka.nfc.felica.suica.Stations
+import work.deka.nfc.util.hex
 import work.deka.zaim.exception.ZaimException
 import kotlin.coroutines.CoroutineContext
 
@@ -74,8 +76,21 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
 
         val nfcReader = NfcFReader(tag)
         try {
+            val stations = Stations(applicationContext)
             nfcReader.read(15).forEach {
                 Log.d(TAG, it.toString())
+                Log.d(
+                    TAG,
+                    "${
+                    stations.get(it.inAreaCode, it.inLineCode, it.inStationCode)?.stationName
+                    } (${
+                    "${it.inAreaCode} ${it.inLineCode} ${it.inStationCode}"
+                    }) -> ${
+                    stations.get(it.outAreaCode, it.outLineCode, it.outStationCode)?.stationName
+                    } (${
+                    "${it.outAreaCode} ${it.outLineCode} ${it.outStationCode}"
+                    })"
+                )
             }
         } catch (e: NfcException) {
             e.printStackTrace()

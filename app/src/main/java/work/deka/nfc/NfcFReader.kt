@@ -5,7 +5,7 @@ import android.nfc.tech.NfcF
 import work.deka.nfc.command.impl.Polling
 import work.deka.nfc.command.impl.ReadWithoutEncryption
 import work.deka.nfc.exception.NfcException
-import work.deka.nfc.felica.Suica
+import work.deka.nfc.felica.suica.Suica
 import work.deka.nfc.util.hex
 
 class NfcFReader(private val tag: Tag) {

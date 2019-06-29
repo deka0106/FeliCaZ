@@ -10,8 +10,8 @@ interface NfcFCommand<T : NfcFCommand.Response> {
 
     val nfc: NfcF
 
-    val commandCode: Byte
-    val responseCode: Byte
+    val commandCode: Int
+    val responseCode: Int
 
     fun parse(data: ByteArray): T
     fun command(): ByteArray

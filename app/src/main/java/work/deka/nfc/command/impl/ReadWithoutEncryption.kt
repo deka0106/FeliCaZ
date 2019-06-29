@@ -2,6 +2,7 @@ package work.deka.nfc.command.impl
 
 import android.nfc.tech.NfcF
 import work.deka.nfc.command.NfcFCommand
+import work.deka.nfc.util.int
 import java.io.ByteArrayOutputStream
 
 // http://wiki.onakasuita.org/pukiwiki/?FeliCa%2F%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%2FRead%20Without%20Encryption
@@ -12,11 +13,11 @@ class ReadWithoutEncryption(
     private val size: Int
 ) : NfcFCommand<ReadWithoutEncryption.Response> {
 
-    override val commandCode: Byte = 0x06.toByte()
-    override val responseCode: Byte = 0x07.toByte()
+    override val commandCode = 0x06
+    override val responseCode = 0x07
     override fun parse(data: ByteArray): Response = Response(data)
     override fun command(): ByteArray = ByteArrayOutputStream().also {
-        it.write(commandCode.toInt())           // コマンドコード (Read Without Encryption)
+        it.write(commandCode)                   // コマンドコード (Read Without Encryption)
         it.write(idm)                           // IDm
         it.write(1)                             // サービス数
         it.write(serviceCode.reversedArray())   // サービスコード
@@ -29,12 +30,12 @@ class ReadWithoutEncryption(
     }.toByteArray()
 
     class Response(override val data: ByteArray) : NfcFCommand.Response {
-        val size by lazy { data[0].toInt() }
-        val responseCode by lazy { data[1].toInt() }
+        val size by lazy { int(data[0]) }
+        val responseCode by lazy { int(data[1]) }
         val idm by lazy { data.sliceArray(2 until 10) }
-        val status1 by lazy { data[10].toInt() }
-        val status2 by lazy { data[11].toInt() }
-        val blockCount by lazy { data[12].toInt() }
+        val status1 by lazy { int(data[10]) }
+        val status2 by lazy { int(data[11]) }
+        val blockCount by lazy { int(data[12]) }
         val blocks by lazy { Array(blockCount) { data.sliceArray(13 + it * 16 until 13 + (it + 1) * 16) } }
         val ok by lazy { status1 == 0x00 && status2 == 0x00 }
     }
