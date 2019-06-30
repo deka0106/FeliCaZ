@@ -8,11 +8,17 @@ import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.NfcF
 import android.os.Bundle
+import android.support.design.widget.BottomNavigationView
+import android.support.v4.app.FragmentPagerAdapter
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
+import work.deka.felicaz.fragment.HistoryFragment
+import work.deka.felicaz.fragment.HomeFragment
+import work.deka.felicaz.fragment.SettingFragment
 import work.deka.felicaz.util.saveCredentials
 import work.deka.felicaz.util.zaim
 import work.deka.nfc.NfcFReader
@@ -22,6 +28,7 @@ import work.deka.zaim.exception.ZaimException
 import kotlin.coroutines.CoroutineContext
 
 class MainActivity : AppCompatActivity(), CoroutineScope {
+
     private val nfcAdapter by lazy { NfcAdapter.getDefaultAdapter(this) }
     private val nfcPendingIntent: PendingIntent by lazy {
         PendingIntent.getActivity(this, 0, Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0)
@@ -33,10 +40,47 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     private val job by lazy { Job() }
     override val coroutineContext: CoroutineContext get() = Dispatchers.Main + job
 
+    private val fragments by lazy {
+        listOf(HomeFragment(), HistoryFragment(), SettingFragment())
+    }
+    private val pagerAdapter by lazy {
+        object : FragmentPagerAdapter(supportFragmentManager) {
+            override fun getCount() = fragments.size
+            override fun getItem(position: Int) = fragments[position]
+        }
+    }
+
+    private val onNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
+        when (item.itemId) {
+            R.id.navigation_home -> {
+                view_pager.setCurrentItem(0, true)
+                title = getString(R.string.title_home)
+                return@OnNavigationItemSelectedListener true
+            }
+            R.id.navigation_history -> {
+                view_pager.setCurrentItem(1, true)
+                title = getString(R.string.title_history)
+                return@OnNavigationItemSelectedListener true
+            }
+            R.id.navigation_setting -> {
+                view_pager.setCurrentItem(2, true)
+                title = getString(R.string.title_setting)
+                return@OnNavigationItemSelectedListener true
+            }
+        }
+        false
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate")
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        title = getString(R.string.title_home)
+        view_pager.also {
+            it.adapter = pagerAdapter
+            it.offscreenPageLimit = fragments.size - 1
+        }
+        navigation.setOnNavigationItemSelectedListener(onNavigationItemSelectedListener)
     }
 
     override fun onResume() {

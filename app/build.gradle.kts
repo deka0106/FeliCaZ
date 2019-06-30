@@ -35,6 +35,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8", kotlinVersion))
     implementation(kotlin("reflect", kotlinVersion))
     implementation("com.android.support:appcompat-v7:28.0.0")
+    implementation("com.android.support:design:28.0.0")
     implementation("com.android.support.constraint:constraint-layout:1.1.3")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.9")
     implementation("oauth.signpost:signpost-core:1.2.1.2")

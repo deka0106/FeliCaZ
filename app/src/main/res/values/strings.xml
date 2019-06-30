@@ -6,4 +6,7 @@
     <string name="failed_to_get_code">Failed to get code.</string>
     <string name="failed_to_authorize">Failed to authorize.</string>
     <string name="auth">Login with Zaim</string>
+    <string name="title_home">ホーム</string>
+    <string name="title_history">履歴</string>
+    <string name="title_setting">設定</string>
 </resources>
