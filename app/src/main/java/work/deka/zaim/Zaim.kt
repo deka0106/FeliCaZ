@@ -42,7 +42,7 @@ class Zaim(
 
     private val client get() = DefaultHttpClient()
 
-    val isAuthorized = credentials.token.isNotBlank() && credentials.tokenSecret.isNotBlank()
+    val isAuthorized get() = credentials.token.isNotBlank() && credentials.tokenSecret.isNotBlank()
 
     fun get(path: String, params: Map<String, Any?> = emptyMap()): HttpResponse {
         val url = "${configuration.baseUrl}$path?${
@@ -79,8 +79,8 @@ class Zaim(
         try {
             provider.retrieveAccessToken(temporaryConsumer, verifier)
             credentials.apply {
-                token = consumer.token
-                tokenSecret = consumer.tokenSecret
+                token = temporaryConsumer.token
+                tokenSecret = temporaryConsumer.tokenSecret
             }
         } catch (e: Exception) {
             throw ZaimException("Failed to authorize.", e)

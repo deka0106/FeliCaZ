@@ -8,6 +8,7 @@ import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.NfcF
 import android.os.Bundle
+import android.os.Handler
 import android.support.design.widget.BottomNavigationView
 import android.support.v4.app.FragmentPagerAdapter
 import android.support.v7.app.AppCompatActivity
@@ -19,6 +20,7 @@ import kotlinx.coroutines.*
 import work.deka.felicaz.fragment.HistoryFragment
 import work.deka.felicaz.fragment.HomeFragment
 import work.deka.felicaz.fragment.SettingFragment
+import work.deka.felicaz.util.clearCredentials
 import work.deka.felicaz.util.saveCredentials
 import work.deka.felicaz.util.zaim
 import work.deka.nfc.NfcFReader
@@ -40,8 +42,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     private val job by lazy { Job() }
     override val coroutineContext: CoroutineContext get() = Dispatchers.Main + job
 
+    private val handler = Handler()
+
+    private val setting by lazy { SettingFragment() }
     private val fragments by lazy {
-        listOf(HomeFragment(), HistoryFragment(), SettingFragment())
+        listOf(HomeFragment(), HistoryFragment(), setting)
     }
     private val pagerAdapter by lazy {
         object : FragmentPagerAdapter(supportFragmentManager) {
@@ -145,14 +150,15 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     private fun onActionView(intent: Intent) {
         Log.d(TAG, "onActionView")
         val uri = intent.data ?: return
-        val code = uri.getQueryParameter(OAUTH_VERIFIER) ?: return
+        val verifier = uri.getQueryParameter(OAUTH_VERIFIER) ?: return
         launch {
             withContext(Dispatchers.IO) {
                 try {
-                    zaim.authorize(code)
+                    zaim.authorize(verifier)
                     saveCredentials(applicationContext, zaim.credentials)
-                    Log.d(TAG, zaim.getUserVerify().execute().toString())
+                    handler.post(Runnable { setting.updateView() })
                 } catch (e: ZaimException) {
+                    e.printStackTrace()
                     Toast.makeText(applicationContext, getString(R.string.failed_to_authorize), Toast.LENGTH_LONG)
                         .show()
                 }
@@ -167,6 +173,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
                 view.context.startActivity(it)
             }
         }
+    }
+
+    fun logout(view: View) {
+        clearCredentials(applicationContext)
+        setting.updateView()
     }
 
     companion object {
