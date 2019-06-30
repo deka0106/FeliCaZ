@@ -75,12 +75,14 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         Log.d(TAG, "onCreate")
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        title = getString(R.string.title_home)
-        view_pager.also {
-            it.adapter = pagerAdapter
-            it.offscreenPageLimit = fragments.size - 1
+        view_pager.apply {
+            adapter = pagerAdapter
+            offscreenPageLimit = fragments.size - 1
         }
-        navigation.setOnNavigationItemSelectedListener(onNavigationItemSelectedListener)
+        navigation.apply {
+            setOnNavigationItemSelectedListener(onNavigationItemSelectedListener)
+            selectedItemId = R.id.navigation_home
+        }
     }
 
     override fun onResume() {

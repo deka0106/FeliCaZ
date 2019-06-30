@@ -10,11 +10,28 @@
             android:id="@+id/home"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/title_home"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:text="@string/touch"
+            app:layout_constraintBottom_toTopOf="@id/touch"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            />
+            app:layout_constraintVertical_chainStyle="packed"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:textSize="24sp"/>
+
+    <ImageView
+            android:id="@+id/touch"
+            android:src="@drawable/touch"
+            android:scaleType="centerInside"
+            android:contentDescription="@string/touch"
+            android:layout_height="360dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/home"
+            android:layout_width="wrap_content"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:layout_marginTop="@dimen/activity_vertical_margin"/>
 
 </android.support.constraint.ConstraintLayout>
