@@ -1,7 +1,6 @@
 package work.deka.felicaz.util
 
 import android.content.Context
-import com.google.api.client.auth.oauth.OAuthCredentialsResponse
 import work.deka.felicaz.R
 import work.deka.zaim.Zaim
 
@@ -18,7 +17,7 @@ fun zaim(context: Context) = Zaim(
     loadCredentials(context)
 )
 
-fun saveCredentials(context: Context, credentials: OAuthCredentialsResponse) {
+fun saveCredentials(context: Context, credentials: Zaim.Credentials) {
     val preferences = context.getSharedPreferences(ZAIM_CREDENTIALS, Context.MODE_PRIVATE)
     preferences.edit()
         .putString(TOKEN, credentials.token)
@@ -26,11 +25,11 @@ fun saveCredentials(context: Context, credentials: OAuthCredentialsResponse) {
         .apply()
 }
 
-fun loadCredentials(context: Context): OAuthCredentialsResponse {
+fun loadCredentials(context: Context): Zaim.Credentials {
     val preferences = context.getSharedPreferences(ZAIM_CREDENTIALS, Context.MODE_PRIVATE)
-    return OAuthCredentialsResponse().apply {
-        token = preferences.getString(TOKEN, "")
-        tokenSecret = preferences.getString(TOKEN_SECRET, "")
+    return Zaim.Credentials().apply {
+        token = preferences.getString(TOKEN, "") ?: ""
+        tokenSecret = preferences.getString(TOKEN_SECRET, "") ?: ""
     }
 }
 

@@ -18,7 +18,6 @@ import work.deka.felicaz.util.zaim
 import work.deka.nfc.NfcFReader
 import work.deka.nfc.exception.NfcException
 import work.deka.nfc.felica.suica.Stations
-import work.deka.nfc.util.hex
 import work.deka.zaim.exception.ZaimException
 import kotlin.coroutines.CoroutineContext
 

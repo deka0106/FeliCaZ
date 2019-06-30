@@ -1,13 +1,15 @@
 package work.deka.zaim
 
-import com.google.api.client.auth.oauth.OAuthAuthorizeTemporaryTokenUrl
-import com.google.api.client.auth.oauth.OAuthCredentialsResponse
-import com.google.api.client.auth.oauth.OAuthHmacSigner
-import com.google.api.client.auth.oauth.OAuthParameters
-import com.google.api.client.http.GenericUrl
-import com.google.api.client.http.HttpRequestFactory
-import com.google.api.client.http.UrlEncodedParser
-import com.google.api.client.http.javanet.NetHttpTransport
+import oauth.signpost.OAuth
+import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer
+import oauth.signpost.commonshttp.CommonsHttpOAuthProvider
+import oauth.signpost.http.HttpParameters
+import org.apache.http.HttpResponse
+import org.apache.http.client.entity.UrlEncodedFormEntity
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.client.methods.HttpPost
+import org.apache.http.impl.client.DefaultHttpClient
+import org.apache.http.message.BasicNameValuePair
 import work.deka.zaim.exception.ZaimException
 import work.deka.zaim.home.account.GetAccountRequest
 import work.deka.zaim.home.category.GetCategoryRequest
@@ -17,55 +19,70 @@ import work.deka.zaim.home.money.income.PostMoneyIncomeRequest
 import work.deka.zaim.home.money.payment.PostMoneyPaymentRequest
 import work.deka.zaim.home.money.transfer.PostMoneyTransferRequest
 import work.deka.zaim.home.user.GetUserVerifyRequest
-import java.io.IOException
 import java.util.*
 
 class Zaim(
     private val configuration: Configuration,
-    val credentials: OAuthCredentialsResponse = OAuthCredentialsResponse()
+    val credentials: Credentials = Credentials()
 ) {
-    private val temporaryCredentials: OAuthCredentialsResponse = OAuthCredentialsResponse()
-
-    private val httpRequestFactory: HttpRequestFactory by lazy {
-        if (!isAuthorized()) throw ZaimException("Not authorized.")
-        NetHttpTransport().createRequestFactory(OAuthParameters().apply {
-            signer = OAuthHmacSigner().apply {
-                clientSharedSecret = configuration.consumerSecret
-                tokenSharedSecret = credentials.tokenSecret
+    private val consumer: CommonsHttpOAuthConsumer
+        get() {
+            if (!isAuthorized) throw ZaimException("Not authorized.")
+            return CommonsHttpOAuthConsumer(configuration.consumerKey, configuration.consumerSecret).apply {
+                setTokenWithSecret(credentials.token, credentials.tokenSecret)
             }
-            version = "1.0"
-            consumerKey = configuration.consumerKey
-            token = credentials.token
-        })
+        }
+
+    private val temporaryConsumer = CommonsHttpOAuthConsumer(configuration.consumerKey, configuration.consumerSecret)
+    private val provider = CommonsHttpOAuthProvider(
+        configuration.requestTokenUrl,
+        configuration.accessTokenUrl,
+        configuration.authorizeUrl
+    )
+
+    private val client get() = DefaultHttpClient()
+
+    val isAuthorized = credentials.token.isNotBlank() && credentials.tokenSecret.isNotBlank()
+
+    fun get(path: String, params: Map<String, Any?> = emptyMap()): HttpResponse {
+        val url = "${configuration.baseUrl}$path?${
+        params.entries.filterNot { it.value == null }.joinToString("&") {
+            "${OAuth.percentEncode(it.key)}=${OAuth.percentEncode(it.value.toString())}"
+        }}"
+        val get = HttpGet(url)
+        consumer.sign(get)
+        return client.execute(get)
     }
 
-    fun request(): HttpRequestFactory = httpRequestFactory
-
-    fun buildUrl(path: String): GenericUrl = GenericUrl("${configuration.baseUrl}$path")
-
-    fun isAuthorized(): Boolean = !credentials.token.isNullOrBlank() && !credentials.tokenSecret.isNullOrBlank()
-
-    fun getAuthorizeUrl(): String {
-        updateTemporaryCredentials()
-        return OAuthAuthorizeTemporaryTokenUrl(configuration.authorizeUrl).apply {
-            temporaryToken = temporaryCredentials.token
-        }.build()
+    fun post(path: String, params: Map<String, Any?> = emptyMap()): HttpResponse {
+        val url = "${configuration.baseUrl}$path"
+        val post = HttpPost(url).apply {
+            entity = UrlEncodedFormEntity(params.entries.filterNot { it.value == null }.map {
+                BasicNameValuePair(it.key, it.value.toString())
+            })
+        }
+        consumer.apply {
+            setAdditionalParameters(HttpParameters().apply {
+                for (param in params.entries) {
+                    put(OAuth.percentEncode(param.key), OAuth.percentEncode(param.value.toString()))
+                }
+                put("realm", url)
+            })
+            sign(post)
+        }
+        return client.execute(post)
     }
 
-    fun authorize(code: String) {
-        val response = NetHttpTransport().createRequestFactory(OAuthParameters().apply {
-            signer = OAuthHmacSigner().apply {
-                clientSharedSecret = configuration.consumerSecret
-                tokenSharedSecret = temporaryCredentials.tokenSecret
-            }
-            version = "1.0"
-            consumerKey = configuration.consumerKey
-            token = temporaryCredentials.token
-            verifier = code
-        }).buildGetRequest(GenericUrl(configuration.accessTokenUrl)).execute()
+    fun getAuthorizeUrl(): String = provider.retrieveRequestToken(temporaryConsumer, configuration.callbackUrl)
+
+    fun authorize(verifier: String) {
         try {
-            UrlEncodedParser.parse(response.parseAsString(), credentials)
-        } catch (e: IOException) {
+            provider.retrieveAccessToken(temporaryConsumer, verifier)
+            credentials.apply {
+                token = consumer.token
+                tokenSecret = consumer.tokenSecret
+            }
+        } catch (e: Exception) {
             throw ZaimException("Failed to authorize.", e)
         }
     }
@@ -88,16 +105,6 @@ class Zaim(
         mapping: Int, amount: Int, date: Date, fromAccountId: Long, toAccountId: Long
     ): PostMoneyTransferRequest = PostMoneyTransferRequest(this, mapping, amount, date, fromAccountId, toAccountId)
 
-    private fun updateTemporaryCredentials() {
-        val response = NetHttpTransport().createRequestFactory(OAuthParameters().apply {
-            signer = OAuthHmacSigner().apply { clientSharedSecret = configuration.consumerSecret }
-            version = "1.0"
-            consumerKey = configuration.consumerKey
-            callback = configuration.callbackUrl
-        }).buildGetRequest(GenericUrl(configuration.requestTokenUrl)).execute()
-        UrlEncodedParser.parse(response.parseAsString(), temporaryCredentials)
-    }
-
     data class Configuration(
         val consumerKey: String,
         val consumerSecret: String,
@@ -106,6 +113,11 @@ class Zaim(
         val requestTokenUrl: String = "https://api.zaim.net/v2/auth/request",
         val authorizeUrl: String = "https://auth.zaim.net/users/auth",
         val accessTokenUrl: String = "https://api.zaim.net/v2/auth/access"
+    )
+
+    data class Credentials(
+        var token: String = "",
+        var tokenSecret: String = ""
     )
 
 }

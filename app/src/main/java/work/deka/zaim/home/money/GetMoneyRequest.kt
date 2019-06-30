@@ -2,14 +2,12 @@ package work.deka.zaim.home.money
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.google.api.client.http.GenericUrl
 import work.deka.zaim.Zaim
 import work.deka.zaim.ZaimRequest
 import work.deka.zaim.exception.ZaimException
 import work.deka.zaim.home.Mode
 import work.deka.zaim.home.Order
 import work.deka.zaim.util.format
-import java.text.SimpleDateFormat
 import java.util.*
 
 class GetMoneyRequest(
@@ -28,23 +26,23 @@ class GetMoneyRequest(
     var groupBy: String? = null
 
     override fun execute(): GetMoneyResponse {
-        val url = buildUrl()
-        val response = zaim.request().buildGetRequest(url).execute()
-        if (response.isSuccessStatusCode) return jacksonObjectMapper().readValue(response.parseAsString())
-        else throw ZaimException("Failed to request: $url by ${response.statusCode} ${response.statusMessage}")
+        val path = "/v2/home/money"
+        val response = zaim.get(path, params)
+        if (response.statusLine.statusCode == 200) return jacksonObjectMapper().readValue(response.entity.content)
+        else throw ZaimException("Failed to request $path by ${response.statusLine.statusCode} ${response.statusLine.reasonPhrase}")
     }
 
-    private fun buildUrl(): GenericUrl = zaim.buildUrl("/v2/home/money").apply {
-        set("mapping", mapping)
-        if (categoryId != null) set("category_id", categoryId)
-        if (genreId != null) set("genre_id", genreId)
-        if (mode != null) set("mode", mode)
-        if (order != null) set("order", order)
-        if (startDate != null) set("start_date", format(startDate))
-        if (endDate != null) set("end_date", format(endDate))
-        if (page != null) set("page", page)
-        if (limit != null) set("limit", limit)
-        if (groupBy != null) set("group_by", groupBy)
+    private val params = HashMap<String, Any?>().apply {
+        put("mapping", mapping)
+        if (categoryId != null) put("category_id", categoryId)
+        if (genreId != null) put("genre_id", genreId)
+        if (mode != null) put("mode", mode)
+        if (order != null) put("order", order)
+        if (startDate != null) put("start_date", format(startDate))
+        if (endDate != null) put("end_date", format(endDate))
+        if (page != null) put("page", page)
+        if (limit != null) put("limit", limit)
+        if (groupBy != null) put("group_by", groupBy)
     }
 
 }

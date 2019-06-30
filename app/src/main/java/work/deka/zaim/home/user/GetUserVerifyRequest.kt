@@ -11,10 +11,10 @@ class GetUserVerifyRequest(
 ) : ZaimRequest<GetUserVerifyResponse> {
 
     override fun execute(): GetUserVerifyResponse {
-        val url = zaim.buildUrl("/v2/home/user/verify")
-        val response = zaim.request().buildGetRequest(url).execute()
-        if (response.isSuccessStatusCode) return jacksonObjectMapper().readValue(response.parseAsString())
-        else throw ZaimException("Failed to request: $url by ${response.statusCode} ${response.statusMessage}")
+        val path = "/v2/home/user/verify"
+        val response = zaim.get(path)
+        if (response.statusLine.statusCode == 200) return jacksonObjectMapper().readValue(response.entity.content)
+        else throw ZaimException("Failed to request $path by ${response.statusLine.statusCode} ${response.statusLine.reasonPhrase}")
     }
 
 }
