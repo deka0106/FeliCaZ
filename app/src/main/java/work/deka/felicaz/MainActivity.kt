@@ -16,11 +16,12 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.fragment_history.*
 import kotlinx.coroutines.*
 import work.deka.felicaz.fragment.HistoryFragment
 import work.deka.felicaz.fragment.HomeFragment
 import work.deka.felicaz.fragment.SettingFragment
-import work.deka.felicaz.history.Entry
+import work.deka.felicaz.history.History
 import work.deka.felicaz.util.clearCredentials
 import work.deka.felicaz.util.saveCredentials
 import work.deka.felicaz.util.zaim
@@ -126,19 +127,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
 
         val nfcReader = NfcFReader(tag)
         try {
-            val stations = Stations(applicationContext)
-            nfcReader.read(15).forEach {
-                Log.d(TAG, it.toString())
-                history.addEntry(
-                    Entry(
-                        "${
-                        stations.get(it.inAreaCode, it.inLineCode, it.inStationCode)?.stationName
-                        } → ${
-                        stations.get(it.outAreaCode, it.outLineCode, it.outStationCode)?.stationName
-                        }"
-                    )
-                )
-            }
+            val entries = nfcReader.read(15)
+            val histories = History.fromEntries(applicationContext, entries)
+            history.addAll(histories)
+            Log.d(TAG, histories.toString())
             navigation.selectedItemId = R.id.navigation_history
         } catch (e: NfcException) {
             e.printStackTrace()
@@ -156,7 +148,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
                     saveCredentials(applicationContext, zaim.credentials)
                     handler.post(Runnable { setting.updateView() })
                 } catch (e: ZaimException) {
-                    e.printStackTrace()
                     Toast.makeText(applicationContext, getString(R.string.failed_to_authorize), Toast.LENGTH_LONG)
                         .show()
                 }
@@ -176,6 +167,20 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
     fun logout(view: View) {
         clearCredentials(applicationContext)
         setting.updateView()
+    }
+
+    fun register(view: View) {
+        launch {
+            try {
+                withContext(Dispatchers.IO) { history.register(applicationContext) }
+                Toast.makeText(applicationContext, getString(R.string.success_to_register), Toast.LENGTH_LONG)
+                    .show()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(applicationContext, getString(R.string.failed_to_register), Toast.LENGTH_LONG)
+                    .show()
+            }
+        }
     }
 
     companion object {

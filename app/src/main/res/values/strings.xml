@@ -4,11 +4,14 @@
     <string name="consumer_secret">54fc07a6fe39e173eca2e0f645badc22db37274c</string>
     <string name="callback_url">https://felicaz.deka.work</string>
     <string name="failed_to_get_code">Failed to get code.</string>
-    <string name="failed_to_authorize">Failed to authorize.</string>
+    <string name="failed_to_authorize">認証に失敗しました</string>
+    <string name="failed_to_register">登録に失敗しました</string>
+    <string name="success_to_register">登録が完了しました</string>
     <string name="login">Zaimでログイン</string>
     <string name="logout">ログアウト</string>
     <string name="title_home">ホーム</string>
     <string name="title_history">履歴</string>
     <string name="title_setting">設定</string>
     <string name="touch">ICカードをかざしてください</string>
+    <string name="register">Zaimに登録</string>
 </resources>
