@@ -20,6 +20,7 @@ import kotlinx.coroutines.*
 import work.deka.felicaz.fragment.HistoryFragment
 import work.deka.felicaz.fragment.HomeFragment
 import work.deka.felicaz.fragment.SettingFragment
+import work.deka.felicaz.history.Entry
 import work.deka.felicaz.util.clearCredentials
 import work.deka.felicaz.util.saveCredentials
 import work.deka.felicaz.util.zaim
@@ -44,10 +45,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
 
     private val handler = Handler()
 
+    private val history by lazy { HistoryFragment() }
     private val setting by lazy { SettingFragment() }
-    private val fragments by lazy {
-        listOf(HomeFragment(), HistoryFragment(), setting)
-    }
+    private val fragments by lazy { listOf(HomeFragment(), history, setting) }
     private val pagerAdapter by lazy {
         object : FragmentPagerAdapter(supportFragmentManager) {
             override fun getCount() = fragments.size
@@ -129,19 +129,17 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
             val stations = Stations(applicationContext)
             nfcReader.read(15).forEach {
                 Log.d(TAG, it.toString())
-                Log.d(
-                    TAG,
-                    "${
-                    stations.get(it.inAreaCode, it.inLineCode, it.inStationCode)?.stationName
-                    } (${
-                    "${it.inAreaCode} ${it.inLineCode} ${it.inStationCode}"
-                    }) -> ${
-                    stations.get(it.outAreaCode, it.outLineCode, it.outStationCode)?.stationName
-                    } (${
-                    "${it.outAreaCode} ${it.outLineCode} ${it.outStationCode}"
-                    })"
+                history.addEntry(
+                    Entry(
+                        "${
+                        stations.get(it.inAreaCode, it.inLineCode, it.inStationCode)?.stationName
+                        } → ${
+                        stations.get(it.outAreaCode, it.outLineCode, it.outStationCode)?.stationName
+                        }"
+                    )
                 )
             }
+            navigation.selectedItemId = R.id.navigation_history
         } catch (e: NfcException) {
             e.printStackTrace()
         }
