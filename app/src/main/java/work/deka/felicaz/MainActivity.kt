@@ -16,7 +16,6 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.fragment_history.*
 import kotlinx.coroutines.*
 import work.deka.felicaz.fragment.HistoryFragment
 import work.deka.felicaz.fragment.HomeFragment
@@ -27,7 +26,6 @@ import work.deka.felicaz.util.saveCredentials
 import work.deka.felicaz.util.zaim
 import work.deka.nfc.NfcFReader
 import work.deka.nfc.exception.NfcException
-import work.deka.nfc.felica.suica.Stations
 import work.deka.zaim.exception.ZaimException
 import kotlin.coroutines.CoroutineContext
 
@@ -128,9 +126,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         val nfcReader = NfcFReader(tag)
         try {
             val entries = nfcReader.read(15)
-            val histories = History.fromEntries(applicationContext, entries)
-            history.addAll(histories)
-            Log.d(TAG, histories.toString())
+            history.addAll(History.fromEntries(applicationContext, entries))
             navigation.selectedItemId = R.id.navigation_history
         } catch (e: NfcException) {
             e.printStackTrace()

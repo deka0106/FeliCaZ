@@ -30,44 +30,39 @@ data class History(
             for (i in 0 until entries.size - 1) {
                 val entry = entries[i]
                 val amount = entry.balance - entries[i + 1].balance
-                // Income
-                if (0 < amount) {
+                if (entry.isStation) {
+                    val comment = "${
+                    stations.get(entry.inAreaCode, entry.inLineCode, entry.inStationCode)?.stationName
+                    } → ${
+                    stations.get(entry.outAreaCode, entry.outLineCode, entry.outStationCode)?.stationName
+                    }"
                     list.add(
-                        History(
-                            entry.data,
-                            Mode.INCOME,
-                            entry.process,
-                            "${
-                            stations.get(entry.inAreaCode, entry.inLineCode, entry.inStationCode)?.stationName
-                            } → ${
-                            stations.get(entry.outAreaCode, entry.outLineCode, entry.outStationCode)?.stationName
-                            }",
-                            199,
-                            19908,
-                            amount,
-                            entry.balance,
-                            entry.date
-                        )
-                    )
-                }
-                // Payment
-                else {
-                    list.add(
-                        History(
-                            entry.data,
-                            Mode.PAYMENT,
-                            entry.process,
-                            "${
-                            stations.get(entry.inAreaCode, entry.inLineCode, entry.inStationCode)?.stationName
-                            } → ${
-                            stations.get(entry.outAreaCode, entry.outLineCode, entry.outStationCode)?.stationName
-                            }",
-                            103,
-                            10301,
-                            -amount,
-                            entry.balance,
-                            entry.date
-                        )
+                        // Income
+                        if (0 < amount) {
+                            History(
+                                entry.data,
+                                Mode.INCOME,
+                                entry.process,
+                                comment,
+                                199, 19908,
+                                amount,
+                                entry.balance,
+                                entry.date
+                            )
+                        }
+                        // Payment
+                        else {
+                            History(
+                                entry.data,
+                                Mode.PAYMENT,
+                                entry.process,
+                                comment,
+                                103, 10301,
+                                -amount,
+                                entry.balance,
+                                entry.date
+                            )
+                        }
                     )
                 }
             }

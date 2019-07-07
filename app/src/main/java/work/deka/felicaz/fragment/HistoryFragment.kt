@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,9 +17,12 @@ import work.deka.zaim.home.Mode
 
 class HistoryFragment : Fragment() {
 
-    private val historyAdapter = HistoryAdapter(ArrayList())
-
+    private val historyAdapter = HistoryAdapter(this)
     private val handler = Handler()
+
+    val histories by lazy {
+        ArrayList<History>() // TODO
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,53 +38,48 @@ class HistoryFragment : Fragment() {
             adapter = historyAdapter
             layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
         }
-        updateRegisterButton()
-    }
-
-    fun add(history: History) {
-        historyAdapter.add(history)
-        updateRegisterButton()
+        notifyDataSetChanged()
     }
 
     fun addAll(histories: List<History>) {
-        historyAdapter.addAll(histories)
-        updateRegisterButton()
+        histories.forEach {
+            if (!this.histories.contains(it)) this.histories.add(it)
+        }
+        notifyDataSetChanged()
     }
 
     fun register(context: Context) {
         val zaim = zaim(context)
         val account = zaim.getAccount().execute().accounts.firstOrNull()?.id ?: 0L
-        historyAdapter.histories.forEach {
+        histories.forEach {
             if (it.checked) {
                 when (it.mode) {
                     Mode.PAYMENT -> {
-                        Log.d("PAYMENT", zaim.postMoneyPayment(1, it.categoryId, it.genreId, it.amount, it.date).apply {
+                        zaim.postMoneyPayment(1, it.categoryId, it.genreId, it.amount, it.date).apply {
                             name = it.name
                             comment = it.comment
                             fromAccountId = account
-                        }.execute().toString())
-                        it.checked = false
+                        }.execute()
                     }
                     Mode.INCOME -> {
-                        Log.d("INCOME", zaim.postMoneyIncome(1, it.categoryId, it.amount, it.date).apply {
+                        zaim.postMoneyIncome(1, it.categoryId, it.amount, it.date).apply {
                             comment = it.comment
                             toAccountId = account
-                        }.execute().toString())
-                        it.checked = false
+                        }.execute()
                     }
                     else -> {
                     }
                 }
+                it.checked = false
             }
         }
-        handler.post {
-            historyAdapter.notifyDataSetChanged()
-            updateRegisterButton()
-        }
+        handler.post { notifyDataSetChanged() }
     }
 
-    private fun updateRegisterButton() {
-        register.isEnabled = historyAdapter.histories.any { it.checked }
+    fun notifyDataSetChanged() {
+        historyAdapter.notifyDataSetChanged()
+        register.isEnabled =
+            histories.any { it.checked } && context?.let { zaim(it).isAuthorized } ?: false
     }
 
 }
