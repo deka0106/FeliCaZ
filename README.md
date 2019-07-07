@@ -6,15 +6,15 @@ Save history of FeliCa (Suica, PASMO) to Zaim.
 
 ### Login with Zaim
 
-![login](img/login.png)
+<img src="img/login.png" alt="login" width="240" />
 
 ### Read FeliCa card (Suica, PASMO)
 
-![home](img/home.png)
+<img src="img/home.png" alt="home" width="240" />
 
 ### Save history to Zaim.
 
-![history](img/history.png)
+<img src="img/history.png" alt="history" width="240" />
 
 ## Debug run
 
